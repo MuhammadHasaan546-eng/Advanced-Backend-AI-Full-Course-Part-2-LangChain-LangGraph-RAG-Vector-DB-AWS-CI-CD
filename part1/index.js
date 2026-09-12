@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { AnnotationState, StateGraph } from "@langchain/langgraph"
 
 dotenv.config();
 
@@ -14,6 +15,23 @@ const llm = new ChatGoogleGenerativeAI({
   maxRetries: 2,
 });
 
+
+ const  State =Annotation.Root({
+  prompt: Annotation,
+  aiMsg: Annotation
+ });
+ 
+
+ const callm = (State) => {
+  const response = llm.invoke([
+    {role: "system", content: "You are a helpful assistant."},
+    {role: "human", content: State.prompt}
+    
+  ])
+  return { aiMsg: response.content };
+ }
+
+ const graph = new StateGraph(State).addNode("agent",callm());
 app.post("/ai", async (req, res) => {
   try {
     console.log(req.body);
